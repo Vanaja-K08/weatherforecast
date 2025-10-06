@@ -43,11 +43,33 @@ function renderCurrent(data) {
   curIcon.innerHTML = `<img src="${iconUrl(data.weather[0].icon)}" alt="${data.weather[0].description}" class="w-full h-full">`;
 }
 
+function getDailyForecasts(list) {
+  const noonItems = list.filter(item => item.dt_txt.includes("12:00:00"));
+  if (noonItems.length >= 5) return noonItems.slice(0,5);
+  const fallback = [];
+  for (let i = 0; i < list.length && fallback.length < 5; i += 8) fallback.push(list[i]);
+  return fallback;
+}
+
+function renderForecast(list) {
+  const days = getDailyForecasts(list);
+  forecastDiv.innerHTML = days.map(item => {
+    const d = new Date(item.dt_txt);
+    const day = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    return `
+      <div class="bg-slate-700/40 p-3 rounded-lg text-center">
+        <div class="font-semibold">${day}</div>
+        <div class="my-2"><img src="${iconUrl(item.weather[0].icon)}" alt="" class="mx-auto" style="width:64px;height:64px"></div>
+        <div class="text-lg font-bold">${Math.round(item.main.temp)}°C</div>
+        <div class="text-slate-300 text-sm mt-1">${item.weather[0].main}</div>
+      </div>
+    `;
+  }).join("");
+}
 
 async function getWeatherByCity(city) {
   showStatus("Loading...");
   currentSection.classList.add("hidden");
-  forecastSection.classList.add("hidden");
 
   try {
     const [cur, forecast] = await Promise.all([
@@ -65,7 +87,6 @@ async function getWeatherByCity(city) {
 async function getWeatherByCoords(lat, lon) {
   showStatus("Loading...");
   currentSection.classList.add("hidden");
-  forecastSection.classList.add("hidden");
 
   try {
     const [cur, forecast] = await Promise.all([
