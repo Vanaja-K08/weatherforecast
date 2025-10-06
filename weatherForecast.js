@@ -95,3 +95,14 @@ searchForm.addEventListener('submit', e => {
   if (!city) { showStatus("Please enter a city name.", true); return; }
   getWeatherByCity(city);
 });
+
+//get by adding current loaction also
+locBtn.addEventListener('click', () => {
+  if (!navigator.geolocation) { showStatus("Geolocation not supported.", true); return; }
+  showStatus("Fetching your location...");
+  navigator.geolocation.getCurrentPosition(pos => {
+    getWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
+  }, err => {
+    showStatus("Could not get location: " + err.message, true);
+  });
+});
